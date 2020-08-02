@@ -2,43 +2,39 @@
 #================================================================
 #	HELPER
 #================================================================
-function help() {
-	echo SYNOPSIS
-	echo    ${SCRIPT_NAME} [-hv] [-o[file]] args ...
+VERSION="0.0.1"
+CRYPTO_CFG_PATH_FOR_ORG=""
+COMPOSE_FILE_FOR_ORG=""
+function printHelp() {
+	echo "SYNOPSIS"
+	echo    "createOrgUsingCryptogen [[-option] arg] ..."
 	echo
-	echo DESCRIPTION
-	echo    This is a script template
-	echo    to start any good shell script.
+	echo "DESCRIPTION"
+	echo    "This is a script to create an organisation for"
+	echo    "Hyperledger Fabric Test Network"
 	echo
-	echo OPTIONS
-	echo    -o [file], --output=[file]    Set log file (default=/dev/null)
-	echo                                  use DEFAULT keyword to autoname file
-	echo                                  The default value is /dev/null.
-	echo    -t, --timelog                 Add timestamp to log ("+%y/%m/%d@%H:%M:%S")
-	echo    -x, --ignorelock              Ignore if lock file exists
-	echo    -h, --help                    Print this help
-	echo    -v, --version                 Print script information
+	echo "OPTIONS"
+	echo    "-p [file]		Set path to crypto config yaml for organisation"
+	echo	"-d [file]		Set path to docker compose file for organisation"
+	echo    "-h, --help            Print this help"
+	echo    "-v, --version          Print script version"
 	echo
-	echo EXAMPLES
-	echo    ${SCRIPT_NAME} -o DEFAULT arg1 arg2
+	echo "EXAMPLES"
+	echo    "createOrgUsingCryptogen -p crypto-config-org1.yaml -d docker-compose-test.yaml"
 	echo
-#================================================================
-	echo IMPLEMENTATION
-	echo    version         ${SCRIPT_NAME} (www.uxora.com) 0.0.4
-	echo    author          Michel VONGVILAY
-	echo    copyright       Copyright (c) http://www.uxora.com
-	echo    license         GNU General Public License
-	echo    script_id       12345
 	echo
 #================================================================
-	echo HISTORY
-	echo    2015/03/01 : mvongvilay : Script creation
-	echo    2015/04/01 : mvongvilay : Add long options and improvements
+	echo "IMPLEMENTATION"
+	echo    "version        createOrgUsingCryptogen (https://github.com/Sangatdas/hyperledger-scripts) 0.0.1"
+	echo    "author         Sangat Das"
+	echo 	"date 		2nd August 2020"
+	echo
 	echo
 #================================================================
-	echo DEBUG OPTION
-	echo   set -n  	echoUncomment to check your syntax, without execution.
-	echo   set -x  	echoUncomment to debug this shell script
+	echo "HISTORY"
+	echo    "02/08/2020 : Sangatdas : Script creation"
+	echo    
+#================================================================
 
 }
 #================================================================
@@ -59,12 +55,12 @@ function generateCryptoUsingCryptogenTool() {
 	echo
 
 	echo "##########################################################"
-	echo "############ Create Org1 Identities ######################"
+	echo "############ Create Org Identities ######################"
 	echo "##########################################################"
 
 	set -x
 	cryptogen generate --config=$CRYPTO_CFG_PATH_FOR_ORG --output="organizations"
-	    res=$?
+	res=$?
 	set +x
 
 	if [ $res -ne 0 ]; then
@@ -73,3 +69,80 @@ function generateCryptoUsingCryptogenTool() {
 	fi
 
 }
+
+function createContainerForOrg() {
+	echo "################################################################"
+	echo "###### Generate container for peer using docker compose ########"
+	echo "################################################################"
+	set -x
+	docker-compose -f $COMPOSE_FILE_FOR_ORG up -d
+	res=$?
+	set +x
+	
+	docker ps -a
+	
+	if [ $res -ne 0 ]; then
+		echo $'\e[1;32m'"Failed to create container...."$'\e[0m'
+		exit 1
+	fi
+	
+}
+
+if [[ $# -lt 1 ]] ; then
+  printHelp
+  exit 0
+fi
+
+while [[ $# -ge 1 ]] ; do
+  key="$1"
+  case $key in
+  -h )
+    printHelp
+    exit 0
+    ;;
+  --help )
+    printHelp
+    exit 0
+    ;;
+  -p )
+    CRYPTO_CFG_PATH_FOR_ORG="$2"
+    shift
+    ;;
+  -d )
+    COMPOSE_FILE_FOR_ORG="$2"
+    shift
+    ;;
+  -v )
+    echo $VERSION
+    exit 0
+    ;;
+  --version )
+    echo $VERSION
+    exit 0
+    ;;
+  * )
+    echo
+    echo "Unknown flag: $key"
+    echo
+    printHelp
+    exit 1
+    ;;
+  esac
+  shift
+done
+
+if [ "$CRYPTO_CFG_PATH_FOR_ORG" == "" ]; then
+	echo "Crypto Config file (YAML) for organisation not provided in arguments. Please refer help."
+	printHelp
+	exit 1
+fi
+
+if [ "$COMPOSE_FILE_FOR_ORG" == "" ]; then
+	echo "Docker COmpose file for organisation not provided in arguments. Please refer help."
+	printHelp
+	exit 1
+fi
+
+generateCryptoUsingCryptogenTool
+createContainerForOrg
+
