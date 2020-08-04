@@ -17,7 +17,8 @@ function printHelp() {
 	echo    "-p [file]		Set path to crypto config yaml for organisation"
 	echo	"-d [file]		Set path to docker compose file for organisation"
 	echo    "-h, --help            Print this help"
-	echo    "-v, --version          Print script version"
+	echo    "-v, --version         Print script version"
+	echo	"-o [path]		Set path to save crypto material for organisation"
 	echo
 	echo "EXAMPLES"
 	echo    "createOrgUsingCryptogen -p crypto-config-org1.yaml -d docker-compose-test.yaml"
@@ -37,6 +38,33 @@ function printHelp() {
 #================================================================
 
 }
+
+function one_line_pem {
+    echo "`awk 'NF {sub(/\\n/, ""); printf "%s\\\\\\\n",$0;}' $1`"
+}
+
+function json_ccp {
+    local PP=$(one_line_pem $4)
+    local CP=$(one_line_pem $5)
+    sed -e "s/\${ORG}/$1/" \
+        -e "s/\${P0PORT}/$2/" \
+        -e "s/\${CAPORT}/$3/" \
+        -e "s#\${PEERPEM}#$PP#" \
+        -e "s#\${CAPEM}#$CP#" \
+        ccp-template.json
+}
+
+function yaml_ccp {
+    local PP=$(one_line_pem $4)
+    local CP=$(one_line_pem $5)
+    sed -e "s/\${ORG}/$1/" \
+        -e "s/\${P0PORT}/$2/" \
+        -e "s/\${CAPORT}/$3/" \
+        -e "s#\${PEERPEM}#$PP#" \
+        -e "s#\${CAPEM}#$CP#" \
+        ccp-template.yaml | sed -e $'s/\\\\n/\\\n          /g'
+}
+
 #================================================================
 #	END_OF_HELPER
 #================================================================
@@ -59,7 +87,7 @@ function generateCryptoUsingCryptogenTool() {
 	echo "##########################################################"
 
 	set -x
-	cryptogen generate --config=$CRYPTO_CFG_PATH_FOR_ORG --output="organizations"
+	cryptogen generate --config=$CRYPTO_CFG_PATH_FOR_ORG --output=$OUTPUT_PATH
 	res=$?
 	set +x
 
@@ -112,6 +140,10 @@ while [[ $# -ge 1 ]] ; do
     COMPOSE_FILE_FOR_ORG="$2"
     shift
     ;;
+  -o )
+    OUTPUT_PATH="$2"
+    shift
+    ;;   
   -v )
     echo $VERSION
     exit 0
