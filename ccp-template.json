@@ -12,7 +12,7 @@
         }
     },
     "organizations": {
-        "Org${ORG}": {
+        "${ORG_NAME}": {
             "mspid": "${ORG_NAME}MSP",
             "peers": [
                 "${PEER_NAME}.${ORG_DOMAIN}"
@@ -23,7 +23,7 @@
         }
     },
     "peers": {
-        "peer0.${ORG_DOMAIN}": {
+        "${PEER_NAME}.${ORG_DOMAIN}": {
             "url": "grpcs://localhost:${PEER_PORT}",
             "tlsCACerts": {
                 "pem": "${PEERPEM_PATH}"

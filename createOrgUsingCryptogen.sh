@@ -16,6 +16,7 @@ function printHelp() {
 	echo "OPTIONS"
 	echo    "-p [file]		Set path to crypto config yaml for organisation"
 	echo	"-d [file]		Set path to docker compose file for organisation"
+	echo	"--consortium [file]	Create consortium (Required for creating orderer nodes)"
 	echo    "-h, --help            Print this help"
 	echo    "-v, --version         Print script version"
 	echo	"-o [path]		Set path to save crypto material for organisation"
@@ -116,6 +117,32 @@ function createContainerForOrg() {
 	
 }
 
+# Once you create the organization crypto material, you need to create the
+# genesis block of the orderer system channel. This block is required to bring
+# up any orderer nodes and create any application channels.
+
+function createConsortium() {
+
+  which configtxgen
+  if [ "$?" -ne 0 ]; then
+    echo "configtxgen tool not found. exiting"
+    exit 1
+  fi
+
+  echo "#########  Generating Orderer Genesis block ##############"
+
+  # Note: For some unknown reason (at least for now) the block file can't be
+  # named orderer.genesis.block or the orderer will fail to launch!
+  set -x
+  configtxgen -profile TwoOrgsOrdererGenesis -channelID system-channel -outputBlock ../organizations/system-genesis-block/genesis.block
+  res=$?
+  set +x
+  if [ $res -ne 0 ]; then
+    echo $'\e[1;32m'"Failed to generate orderer genesis block..."$'\e[0m'
+    exit 1
+  fi
+}
+
 if [[ $# -lt 1 ]] ; then
   printHelp
   exit 0
@@ -143,7 +170,11 @@ while [[ $# -ge 1 ]] ; do
   -o )
     OUTPUT_PATH="$2"
     shift
-    ;;   
+    ;;  
+  --consortium )
+    createConsortium
+    exit 0
+    ;;  
   -v )
     echo $VERSION
     exit 0

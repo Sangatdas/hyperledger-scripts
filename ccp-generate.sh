@@ -3,8 +3,6 @@
 #	HELPER
 #================================================================
 VERSION="0.0.1"
-CRYPTO_CFG_PATH_FOR_ORG=""
-COMPOSE_FILE_FOR_ORG=""
 function printHelp() {
 	echo "SYNOPSIS"
 	echo    "createOrgUsingCryptogen [[-option] arg] ..."
@@ -25,7 +23,7 @@ function printHelp() {
 	echo    "-v, --version         Print script version"
 	echo
 	echo "EXAMPLES"
-	echo    "ccp-generate.sh --domain peer0.org1.example.com --name Org1 --pname peer0 --peerpem ../organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem --capem organizations/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem --peerport 7051 --caport 7054"
+	echo    "ccp-generate.sh --domain peer0.org1.example.com --name Org1 --pname peer0 --peerpem ../organizations/peerOrganizations/org1.example.com/tlsca/tlsca.org1.example.com-cert.pem --capem ../organizations/peerOrganizations/org1.example.com/ca/ca.org1.example.com-cert.pem --peerport 7051 --caport 7054"
 	echo
 	echo
 #================================================================
@@ -145,8 +143,8 @@ echo "CA_PORT: $CA_PORT"
 echo "PEERPEM_PATH: $PEERPEM_PATH"
 echo "CAPEM_PATH: $CAPEM_PATH" 
 
-echo "$(json_ccp $ORG_NAME $PEER_NAME $ORG_DOMAIN $PEER_PORT $CA_PORT $PEERPEM_PATH $CAPEM_PATH)" > organizations/peerOrganizations/$ORG_DOMAIN/connection-$ORG_NAME.json
-echo "$(yaml_ccp $ORG_NAME $PEER_NAME $ORG_DOMAIN $PEER_PORT $CA_PORT $PEERPEM_PATH $CAPEM_PATH)" > organizations/peerOrganizations/$ORG_DOMAIN/connection-$ORG_NAME.yaml
+echo "$(json_ccp $ORG_NAME $PEER_NAME $ORG_DOMAIN $PEER_PORT $CA_PORT $PEERPEM_PATH $CAPEM_PATH)" > ../organizations/peerOrganizations/$ORG_DOMAIN/connection-$ORG_NAME.json
+echo "$(yaml_ccp $ORG_NAME $PEER_NAME $ORG_DOMAIN $PEER_PORT $CA_PORT $PEERPEM_PATH $CAPEM_PATH)" > ../organizations/peerOrganizations/$ORG_DOMAIN/connection-$ORG_NAME.yaml
 
 
 
